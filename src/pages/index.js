@@ -88,7 +88,7 @@ export default function Home() {
       >
         <TextField
           type="number"
-          label="Enter distance"
+          label="Enter the distance in mega lights"
           variant="outlined"
           onChange={({ target: { value } }) => setValue(value)}
           value={value}
