@@ -3,7 +3,6 @@ import { useState } from "react";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
-import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import Divider from "@material-ui/core/Divider";
 import ListItemText from "@material-ui/core/ListItemText";
@@ -16,17 +15,19 @@ import CloseIcon from "@material-ui/icons/Close";
 import InfoIcon from "@material-ui/icons/Info";
 import CircularProgress from "@material-ui/core/CircularProgress";
 
-// import api from "../services/api";
+import api from "../services/api";
 import {
   Message,
   ContainerLoading,
   ContainerImage,
+  ContainerList,
 } from "../styles/pages/Home";
 
-export default function Home({ vehicles }) {
+export default function Home() {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [vehicles, setVehicles] = useState(null);
 
   const useStyles = makeStyles((theme) => ({
     root: {
@@ -40,13 +41,31 @@ export default function Home({ vehicles }) {
 
   const classes = useStyles();
 
-  function onSubmit() {
+  async function onSubmit() {
     if (!value) {
       setError(true);
     } else {
-      setValue("");
       setLoading(true);
+
+      const { data } = await api.get("vehicles");
+      if (data.results) {
+        const arr = [];
+
+        data.results.map((vehicle) => {
+          arr.push({
+            stops: Math.floor(
+              (vehicle.cargo_capacity * vehicle.max_atmosphering_speed) / value
+            ),
+            name: vehicle.name,
+          });
+
+          setVehicles(arr);
+        });
+      }
+
+      setLoading(false);
       setError(false);
+      setValue("");
     }
   }
 
@@ -63,12 +82,13 @@ export default function Home({ vehicles }) {
       <form
         onSubmit={(event) => {
           event.preventDefault();
+          event.stopPropagation();
           onSubmit();
         }}
       >
         <TextField
           type="number"
-          label="Enter the distance to be covered"
+          label="Enter distance"
           variant="outlined"
           onChange={({ target: { value } }) => setValue(value)}
           value={value}
@@ -89,73 +109,42 @@ export default function Home({ vehicles }) {
       </form>
 
       <br />
-      <List className={classes.root}>
-        <ListItem alignItems="flex-start">
-          <ListItemAvatar>
-            <Avatar alt="Remy Sharp" src="nav-1.jpg" />
-          </ListItemAvatar>
-          <ListItemText
-            primary="Brunch this weekend?"
-            secondary={
-              <React.Fragment>
-                <Typography
-                  component="span"
-                  variant="body2"
-                  className={classes.inline}
-                  color="textPrimary"
-                >
-                  Ali Connors
-                </Typography>
-                {" — I'll be in your neighborhood doing errands this…"}
-              </React.Fragment>
-            }
-          />
-        </ListItem>
-        <Divider variant="inset" component="li" />
-        <ListItem alignItems="flex-start">
-          <ListItemAvatar>
-            <Avatar alt="Travis Howard" src="nav-2.jpg" />
-          </ListItemAvatar>
-          <ListItemText
-            primary="Summer BBQ"
-            secondary={
-              <React.Fragment>
-                <Typography
-                  component="span"
-                  variant="body2"
-                  className={classes.inline}
-                  color="textPrimary"
-                >
-                  to Scott, Alex, Jennifer
-                </Typography>
-                {" — Wish I could come, but I'm out of town this…"}
-              </React.Fragment>
-            }
-          />
-        </ListItem>
-        <Divider variant="inset" component="li" />
-        <ListItem alignItems="flex-start">
-          <ListItemAvatar>
-            <Avatar alt="Cindy Baker" src="nav-3.jpg" />
-          </ListItemAvatar>
-          <ListItemText
-            primary="Oui Oui"
-            secondary={
-              <React.Fragment>
-                <Typography
-                  component="span"
-                  variant="body2"
-                  className={classes.inline}
-                  color="textPrimary"
-                >
-                  Sandra Adams
-                </Typography>
-                {" — Do you have Paris recommendations? Have you ever…"}
-              </React.Fragment>
-            }
-          />
-        </ListItem>
-      </List>
+      {loading ? (
+        <ContainerLoading>
+          <CircularProgress />
+        </ContainerLoading>
+      ) : (
+        <ContainerList className={classes.root}>
+          {vehicles?.map((vehicle, index) => (
+            <div key={index}>
+              <ListItem alignItems="flex-start">
+                <ListItemAvatar>
+                  <Avatar
+                    alt="Remy Sharp"
+                    src={`nav-${Math.floor(Math.random() * 4)}.jpg`}
+                  />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={vehicle.name}
+                  secondary={
+                    <React.Fragment>
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        className={classes.inline}
+                        color="textPrimary"
+                      >
+                        Stops: {isNaN(vehicle.stops) ? 0 : vehicle.stops}
+                      </Typography>
+                    </React.Fragment>
+                  }
+                />
+              </ListItem>
+              <Divider variant="inset" component="li" />
+            </div>
+          ))}
+        </ContainerList>
+      )}
 
       <Snackbar
         anchorOrigin={{
@@ -180,22 +169,6 @@ export default function Home({ vehicles }) {
           </IconButton>
         }
       />
-
-      {loading && (
-        <ContainerLoading>
-          <CircularProgress />
-        </ContainerLoading>
-      )}
     </>
   );
 }
-
-/* export const getServerSideProps = async () => {
-  const { data } = await api.get("https://swapi.dev/api/vehicles");
-
-  return {
-    props: {
-      vehicles: data.results,
-    },
-  };
-}; */

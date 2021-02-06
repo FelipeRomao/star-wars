@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import List from "@material-ui/core/List";
 
 export const Message = styled.div`
   display: flex;
@@ -12,7 +13,8 @@ export const Message = styled.div`
 export const ContainerLoading = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 2em;
+  max-height: 150px;
+  height: 150px;
 `;
 
 export const ContainerImage = styled.div`
@@ -23,4 +25,10 @@ export const ContainerImage = styled.div`
   img {
     width: 200px;
   }
+`;
+
+export const ContainerList = styled(List)`
+  max-height: 150px;
+  height: 150px;
+  overflow: auto;
 `;

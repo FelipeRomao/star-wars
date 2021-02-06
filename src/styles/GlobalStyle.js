@@ -5,7 +5,7 @@ export default createGlobalStyle`
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 90vh;
+    height: 100vh;
     padding: 0;
     margin: 0;
     background-image: url('start-background.png');
